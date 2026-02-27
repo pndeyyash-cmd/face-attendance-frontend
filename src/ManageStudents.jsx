@@ -6,6 +6,9 @@ export default function ManageStudents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  
+  // State for the Image Pop-out
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const fetchStudents = async () => {
     try {
@@ -79,7 +82,18 @@ export default function ManageStudents() {
                     <img 
                       src={s.profile_pic || "https://via.placeholder.com/45"} 
                       alt="Profile" 
-                      style={{ width: '45px', height: '45px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #007BFF' }} 
+                      onClick={() => setSelectedImage(s.profile_pic || "https://via.placeholder.com/45")}
+                      style={{ 
+                        width: '45px', 
+                        height: '45px', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover', 
+                        border: '2px solid #007BFF',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s'
+                      }} 
+                      onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                      onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                     />
                   </td>
                   <td style={{ padding: '15px', textAlign: 'center' }}>{s.name}</td>
@@ -92,6 +106,60 @@ export default function ManageStudents() {
             </tbody>
           </table>
           {filteredStudents.length === 0 && <h4 style={{ textAlign: 'center', marginTop: '20px', color: '#666' }}>No matches found.</h4>}
+        </div>
+      )}
+
+      {/* --- Image Pop-out Modal --- */}
+      {selectedImage && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.85)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{ position: 'relative', maxWidth: '80%', maxHeight: '80%' }}>
+            {/* Close Button */}
+            <button 
+              onClick={() => setSelectedImage(null)}
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '-40px',
+                backgroundColor: '#e74c3c',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '35px',
+                height: '35px',
+                fontSize: '20px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                boxShadow: '0 0 10px rgba(0,0,0,0.5)'
+              }}
+            >
+              ×
+            </button>
+            <img 
+              src={selectedImage} 
+              alt="Enlarged Profile" 
+              style={{ 
+                maxWidth: '100%', 
+                maxHeight: '70vh', 
+                borderRadius: '10px', 
+                border: '4px solid white',
+                boxShadow: '0 0 20px rgba(0,0,0,0.5)'
+              }} 
+            />
+          </div>
         </div>
       )}
     </div>
