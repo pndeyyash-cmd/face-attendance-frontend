@@ -16,7 +16,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem('adminToken');
       if (!token) {
-        setError("🔒 UNAUTHORIZED: Please login as an admin.");
+        setError("🔒 UNAUTHORIZED: Access Denied.");
         setLoading(false);
         return;
       }
@@ -40,7 +40,7 @@ export default function Dashboard() {
       });
       setLogs(response.data);
     } catch (err) {
-      setError("FATAL ERROR: Failed to fetch data.");
+      setError("❌ System Error: Failed to synchronize records.");
     } finally {
       setLoading(false);
     }
@@ -51,80 +51,149 @@ export default function Dashboard() {
   const csvHeaders = [
     { label: "Date", key: "date" },
     { label: "Time", key: "time" },
-    { label: "Student Name", key: "name" },
-    { label: "Roll Number", key: "roll_number" },
+    { label: "Identity Name", key: "name" },
+    { label: "Security ID", key: "roll_number" },
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', paddingBottom: '50px' }}>
+    <div style={{ 
+      minHeight: '100vh',
+      width: '100%',
+      background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)', 
+      color: 'white',
+      padding: '40px 20px',
+      fontFamily: "'Inter', sans-serif"
+    }}>
       
-      {/* Analytics Cards Section */}
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', width: '90%', maxWidth: '1000px', justifyContent: 'center' }}>
-        <div style={{ backgroundColor: '#007BFF', padding: '20px', borderRadius: '10px', flex: 1, textAlign: 'center' }}>
-          <h3 style={{ margin: 0 }}>{stats.total}</h3>
-          <p style={{ margin: 0, fontSize: '14px' }}>Total Students</p>
-        </div>
-        <div style={{ backgroundColor: '#28a745', padding: '20px', borderRadius: '10px', flex: 1, textAlign: 'center' }}>
-          <h3 style={{ margin: 0 }}>{stats.present}</h3>
-          <p style={{ margin: 0, fontSize: '14px' }}>Present Today</p>
-        </div>
-        <div style={{ backgroundColor: '#dc3545', padding: '20px', borderRadius: '10px', flex: 1, textAlign: 'center' }}>
-          <h3 style={{ margin: 0 }}>{stats.absent}</h3>
-          <p style={{ margin: 0, fontSize: '14px' }}>Absent Today</p>
-        </div>
-      </div>
+      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <h2 style={{ 
+          textAlign: 'center', 
+          fontSize: '2.5rem', 
+          marginBottom: '10px', 
+          background: 'linear-gradient(to right, #00dbde, #fc00ff)', 
+          WebkitBackgroundClip: 'text', 
+          WebkitTextFillColor: 'transparent',
+          fontWeight: '800'
+        }}>
+          Enterprise Analytics Dashboard
+        </h2>
+        <p style={{ textAlign: 'center', color: '#888', marginBottom: '40px' }}>Real-time Monitoring & Personnel Intelligence</p>
 
-      <h2 style={{ marginBottom: '20px', fontSize: '28px', borderBottom: '2px solid #007BFF', paddingBottom: '10px' }}>Attendance History</h2>
+        {/* --- Analytics Cards Section --- */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '20px', 
+          marginBottom: '40px', 
+          justifyContent: 'center' 
+        }}>
+          {[
+            { label: "Total Personnel", value: stats.total, color: "#00d4ff" },
+            { label: "Active Present", value: stats.present, color: "#2ecc71" },
+            { label: "Awaiting Check-in", value: stats.absent, color: "#ff7675" }
+          ].map((item, idx) => (
+            <div key={idx} style={{ 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              padding: '25px', 
+              borderRadius: '20px', 
+              flex: 1, 
+              textAlign: 'center',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
+            }}>
+              <h3 style={{ margin: '0 0 5px 0', fontSize: '2rem', color: item.color }}>{item.value}</h3>
+              <p style={{ margin: 0, fontSize: '14px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>{item.label}</p>
+            </div>
+          ))}
+        </div>
 
-      {/* Filter & Export Bar */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end', justifyContent: 'center', marginBottom: '30px', backgroundColor: '#333', padding: '20px', borderRadius: '10px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontSize: '12px', color: '#aaa' }}>From / Single Date</label>
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#444', color: 'white' }} />
+        {/* --- Filter & Export Bar --- */}
+        <div style={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: '20px', 
+          alignItems: 'flex-end', 
+          justifyContent: 'space-between', 
+          marginBottom: '30px', 
+          background: 'rgba(255, 255, 255, 0.05)', 
+          padding: '25px', 
+          borderRadius: '20px',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
+        }}>
+          <div style={{ display: 'flex', gap: '15px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', color: '#00d4ff', fontWeight: 'bold' }}>START DATE</label>
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: 'rgba(0,0,0,0.3)', color: 'white', outline: 'none' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', color: '#00d4ff', fontWeight: 'bold' }}>END DATE (OPTIONAL)</label>
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: 'none', backgroundColor: 'rgba(0,0,0,0.3)', color: 'white', outline: 'none' }} />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={() => {setStartDate(""); setEndDate("");}} style={{ padding: '12px 25px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>Reset Filter</button>
+            
+            {logs.length > 0 && (
+              <CSVLink 
+                data={logs} 
+                headers={csvHeaders} 
+                filename={`security_report_${startDate || 'live'}.csv`}
+                style={{ 
+                  textDecoration: 'none', 
+                  background: 'linear-gradient(45deg, #2ecc71, #27ae60)', 
+                  color: 'white', 
+                  padding: '12px 25px', 
+                  borderRadius: '8px', 
+                  fontWeight: 'bold',
+                  boxShadow: '0 4px 15px rgba(46, 204, 113, 0.3)'
+                }}
+              >
+                EXPORT LOGS
+              </CSVLink>
+            )}
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontSize: '12px', color: '#aaa' }}>To (Optional Range)</label>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '10px', borderRadius: '5px', border: 'none', backgroundColor: '#444', color: 'white' }} />
-        </div>
-        <button onClick={() => {setStartDate(""); setEndDate("");}} style={{ padding: '10px 20px', backgroundColor: '#555', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Reset</button>
-        
-        {logs.length > 0 && (
-          <CSVLink 
-            data={logs} 
-            headers={csvHeaders} 
-            filename={`attendance_report_${startDate || 'today'}.csv`}
-            style={{ textDecoration: 'none', backgroundColor: '#28a745', color: 'white', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold' }}
-          >
-            Download CSV
-          </CSVLink>
+
+        {/* --- Table Section --- */}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            <h3 style={{ color: '#00d4ff', letterSpacing: '2px' }}>RETRIEVING AUDIT LOGS...</h3>
+          </div>
+        ) : error ? (
+          <div style={{ textAlign: 'center', padding: '30px', color: '#ff7675', border: '1px solid #ff7675', borderRadius: '10px' }}>{error}</div>
+        ) : (
+          <div style={{ 
+            background: 'rgba(255, 255, 255, 0.03)', 
+            borderRadius: '20px', 
+            overflow: 'hidden',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'rgba(255, 255, 255, 0.05)', textAlign: 'left' }}>
+                  <th style={{ padding: '20px' }}>Timestamp</th>
+                  <th style={{ padding: '20px' }}>Check-in Time</th>
+                  <th style={{ padding: '20px' }}>Identity Name</th>
+                  <th style={{ padding: '20px', textAlign: 'right' }}>Security ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log, index) => (
+                  <tr key={`${log.roll_number}-${log.date}-${log.time}`} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                    <td style={{ padding: '20px' }}>{log.date}</td>
+                    <td style={{ padding: '20px', color: '#888' }}>{log.time}</td>
+                    <td style={{ padding: '20px', fontWeight: '600' }}>{log.name}</td>
+                    <td style={{ padding: '20px', color: '#00d4ff', fontWeight: 'bold', textAlign: 'right', fontFamily: 'monospace' }}>{log.roll_number}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {logs.length === 0 && <div style={{ padding: '40px', textAlign: 'center', color: '#555' }}>No activity records detected for this period.</div>}
+          </div>
         )}
       </div>
-
-      {loading ? <h3>Fetching Records...</h3> : error ? <h3 style={{ color: '#ff4c4c' }}>{error}</h3> : (
-        <div style={{ overflowX: 'auto', width: '90%', maxWidth: '1000px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#222', borderRadius: '8px', overflow: 'hidden' }}>
-            <thead style={{ backgroundColor: '#007BFF' }}>
-              <tr>
-                <th style={{ padding: '15px' }}>Date</th>
-                <th style={{ padding: '15px' }}>Time</th>
-                <th style={{ padding: '15px' }}>Name</th>
-                <th style={{ padding: '15px' }}>Roll Number</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log, index) => (
-                <tr key={`${log.roll_number}-${log.date}-${log.time}`} style={{ borderBottom: '1px solid #444', backgroundColor: index % 2 === 0 ? '#2a2a2a' : '#222', textAlign: 'center' }}>
-                  <td style={{ padding: '15px' }}>{log.date}</td>
-                  <td style={{ padding: '15px', color: '#aaa' }}>{log.time}</td>
-                  <td style={{ padding: '15px', fontWeight: 'bold' }}>{log.name}</td>
-                  <td style={{ padding: '15px', color: '#f39c12', fontWeight: 'bold' }}>{log.roll_number}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {logs.length === 0 && <h4 style={{ textAlign: 'center', marginTop: '20px', color: '#666' }}>No records found.</h4>}
-        </div>
-      )}
     </div>
   );
 }

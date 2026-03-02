@@ -10,10 +10,8 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
-  // --- Forced Formatting Logic ---
   const handleRollChange = (e) => {
     let value = e.target.value.toUpperCase(); 
-    // Strips everything except A-Z, 0-9, and the dash
     value = value.replace(/[^A-Z0-9-]/g, ""); 
     setRollNumber(value);
   };
@@ -22,9 +20,9 @@ export default function Register() {
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc) {
       setPreviewImage(imageSrc);
-      setStatus("Snapshot captured. Review before registering.");
+      setStatus("Biometric Scan Captured. Review details.");
     } else {
-      setStatus("❌ Error: Could not capture image.");
+      setStatus("❌ Capture Error: Check Hardware Connection.");
     }
   };
 
@@ -32,97 +30,175 @@ export default function Register() {
     e.preventDefault(); 
     
     if (!name || !rollNumber) {
-      setStatus("❌ Error: Name and Roll Number are required.");
+      setStatus("❌ Required: Personnel Name & Identifier missing.");
       return;
     }
 
-    // Pattern: 2-5 Letters, Dash, 3-6 Numbers (e.g. BTECH-101)
     const rollPattern = /^[A-Z]{2,5}-\d{3,6}$/;
     if (!rollPattern.test(rollNumber)) {
-      setStatus("❌ Invalid Format! Must be COURSE-ID (e.g., BCA-001)");
+      setStatus("❌ Format Invalid: Use DEPT-ID (e.g., HR-101)");
       return;
     }
 
     if (!previewImage) {
-      setStatus("❌ Error: Please take a snapshot first.");
+      setStatus("❌ Error: No Scan detected.");
       return;
     }
 
     setLoading(true);
-    setStatus("Uploading photo and registering student...");
+    setStatus("Synchronizing Identity with Secure Cloud...");
 
     try {
       const token = localStorage.getItem('adminToken');
       const response = await axios.post('https://face-attendance-backend-3o2a.onrender.com/register', {
         name: name,
         roll_number: rollNumber,
-        image: previewImage // This is the Base64 image for Cloudinary
+        image: previewImage 
       }, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      setStatus(`✅ ${response.data.message}`);
+      setStatus(`✅ Identity Registry Success: ${response.data.message}`);
       setName("");
       setRollNumber("");
       setPreviewImage(null);
       
     } catch (error) {
-      setStatus("❌ Error: " + (error.response?.data?.error || "Server error."));
+      setStatus("❌ Error: " + (error.response?.data?.error || "Registry Failure."));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '20px', width: '100%' }}>
-      <h2>Student Registration</h2>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      minHeight: '100vh', 
+      width: '100%',
+      background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)', 
+      color: 'white',
+      padding: '40px 20px',
+      fontFamily: "'Inter', sans-serif"
+    }}>
+      <h2 style={{ 
+        fontSize: '2.2rem', 
+        fontWeight: '800',
+        marginBottom: '10px',
+        background: 'linear-gradient(to right, #00dbde, #fc00ff)', 
+        WebkitBackgroundClip: 'text', 
+        WebkitTextFillColor: 'transparent'
+      }}>
+        Onboard New Identity
+      </h2>
+      <p style={{ color: '#888', marginBottom: '30px' }}>Register biometric data for secure access control.</p>
       
-      <form style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '320px', marginBottom: '20px' }}>
-        <input 
-          type="text" 
-          placeholder="Student Name" 
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ padding: '12px', borderRadius: '5px', border: 'none', backgroundColor: '#333', color: 'white' }}
-        />
-        <input 
-          type="text" 
-          placeholder="Roll Number (e.g., BTECH-101)" 
-          value={rollNumber}
-          onChange={handleRollChange}
-          style={{ padding: '12px', borderRadius: '5px', border: 'none', backgroundColor: '#333', color: 'white' }}
-        />
-        <small style={{ color: '#888', textAlign: 'center' }}>Auto-formatting to UPPERCASE</small>
-      </form>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '20px', 
+        width: '100%', 
+        maxWidth: '700px',
+        background: 'rgba(255, 255, 255, 0.05)',
+        padding: '30px',
+        borderRadius: '20px',
+        backdropFilter: 'blur(15px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+      }}>
+        
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <input 
+            type="text" 
+            placeholder="Full Personnel Name" 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: 'rgba(0,0,0,0.3)', color: 'white', outline: 'none' }}
+          />
+          <input 
+            type="text" 
+            placeholder="Unique Asset ID (HR-101)" 
+            value={rollNumber}
+            onChange={handleRollChange}
+            style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: 'rgba(0,0,0,0.3)', color: 'white', outline: 'none' }}
+          />
+        </div>
 
-      <div style={{ border: '4px solid #333', borderRadius: '10px', overflow: 'hidden', marginBottom: '20px', width: '640px', height: '480px', backgroundColor: '#000' }}>
-        {previewImage ? (
-          <img src={previewImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={640} height={480} />
-        )}
+        {/* --- Scanning Bay --- */}
+        <div style={{ 
+          position: 'relative',
+          border: '2px solid rgba(0, 212, 255, 0.3)', 
+          borderRadius: '15px', 
+          overflow: 'hidden', 
+          width: '100%', 
+          aspectRatio: '4/3', 
+          backgroundColor: '#000',
+          boxShadow: 'inset 0 0 50px rgba(0, 212, 255, 0.1)'
+        }}>
+          {previewImage ? (
+            <img src={previewImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <>
+              <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {/* Scan Overlay Effect */}
+              <div style={{
+                position: 'absolute',
+                top: 0, left: 0, width: '100%', height: '2px',
+                background: '#00d4ff',
+                boxShadow: '0 0 15px #00d4ff',
+                animation: 'scan 3s linear infinite'
+              }}></div>
+            </>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+          {!previewImage ? (
+            <button onClick={takeSnapshot} style={{ 
+              padding: '15px 40px', background: 'transparent', color: '#00d4ff', border: '1px solid #00d4ff', 
+              borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s' 
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.background = '#00d4ff'; e.currentTarget.style.color = '#000'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#00d4ff'; }}
+            >
+              INITIALIZE SCAN
+            </button>
+          ) : (
+            <>
+              <button onClick={() => setPreviewImage(null)} style={{ padding: '15px 30px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                RETAKE
+              </button>
+              <button onClick={captureAndRegister} disabled={loading} style={{ 
+                padding: '15px 30px', background: 'linear-gradient(45deg, #007bff, #00d4ff)', color: 'white', 
+                border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' 
+              }}>
+                {loading ? "SYNCING..." : "CONFIRM REGISTRY"}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '15px' }}>
-        {!previewImage ? (
-          <button onClick={takeSnapshot} style={{ padding: '15px 30px', backgroundColor: '#007BFF', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
-            Take Snapshot
-          </button>
-        ) : (
-          <>
-            <button onClick={() => setPreviewImage(null)} style={{ padding: '15px 30px', backgroundColor: '#555', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
-              Retake
-            </button>
-            <button onClick={captureAndRegister} disabled={loading} style={{ padding: '15px 30px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
-              {loading ? "Registering..." : "Confirm & Register"}
-            </button>
-          </>
-        )}
-      </div>
+      {status && (
+        <div style={{ 
+          marginTop: '25px', padding: '15px 30px', borderRadius: '8px', 
+          background: 'rgba(255, 255, 255, 0.05)', 
+          border: `1px solid ${status.includes("✅") ? '#2ecc71' : '#ff7675'}`,
+          color: status.includes("✅") ? '#2ecc71' : '#ff7675',
+          fontWeight: '500'
+        }}>
+          {status}
+        </div>
+      )}
 
-      <h3 style={{ marginTop: '20px', color: status.includes("✅") ? '#28a745' : '#ff4c4c', backgroundColor: '#222', padding: '10px', borderRadius: '5px' }}>
-        {status}
-      </h3>
+      {/* Adding keyframe animation for the scanner line */}
+      <style>{`
+        @keyframes scan {
+          0% { top: 0%; }
+          100% { top: 100%; }
+        }
+      `}</style>
     </div>
   );
 }
