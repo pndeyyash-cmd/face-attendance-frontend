@@ -29,6 +29,9 @@ export default function Register() {
   const captureAndRegister = async (e) => {
     e.preventDefault(); 
     
+    // ANTI-SPAM: Prevent multiple clicks while syncing
+    if (loading) return;
+    
     if (!name || !rollNumber) {
       setStatus("❌ Required: Personnel Name & Identifier missing.");
       return;
@@ -72,40 +75,25 @@ export default function Register() {
 
   return (
     <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      minHeight: '100vh', 
-      width: '100%',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', 
+      minHeight: '100vh', width: '100%',
       background: 'linear-gradient(135deg, #0f0c29, #302b63, #24243e)', 
-      color: 'white',
-      padding: '40px 20px',
-      fontFamily: "'Inter', sans-serif"
+      color: 'white', padding: '40px 20px', fontFamily: "'Inter', sans-serif"
     }}>
       <h2 style={{ 
-        fontSize: '2.2rem', 
-        fontWeight: '800',
-        marginBottom: '10px',
+        fontSize: '2.2rem', fontWeight: '800', marginBottom: '10px',
         background: 'linear-gradient(to right, #00dbde, #fc00ff)', 
-        WebkitBackgroundClip: 'text', 
-        WebkitTextFillColor: 'transparent'
+        WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
       }}>
         Onboard New Identity
       </h2>
       <p style={{ color: '#888', marginBottom: '30px' }}>Register biometric data for secure access control.</p>
       
       <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        gap: '20px', 
-        width: '100%', 
-        maxWidth: '700px',
-        background: 'rgba(255, 255, 255, 0.05)',
-        padding: '30px',
-        borderRadius: '20px',
-        backdropFilter: 'blur(15px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+        display: 'flex', flexDirection: 'column', gap: '20px', 
+        width: '100%', maxWidth: '700px', background: 'rgba(255, 255, 255, 0.05)',
+        padding: '30px', borderRadius: '20px', backdropFilter: 'blur(15px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
       }}>
         
         <div style={{ display: 'flex', gap: '15px' }}>
@@ -114,6 +102,7 @@ export default function Register() {
             placeholder="Full Personnel Name" 
             value={name}
             onChange={(e) => setName(e.target.value)}
+            disabled={loading}
             style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: 'rgba(0,0,0,0.3)', color: 'white', outline: 'none' }}
           />
           <input 
@@ -121,33 +110,25 @@ export default function Register() {
             placeholder="Unique Asset ID (HR-101)" 
             value={rollNumber}
             onChange={handleRollChange}
+            disabled={loading}
             style={{ flex: 1, padding: '14px', borderRadius: '8px', border: 'none', backgroundColor: 'rgba(0,0,0,0.3)', color: 'white', outline: 'none' }}
           />
         </div>
 
         {/* --- Scanning Bay --- */}
         <div style={{ 
-          position: 'relative',
-          border: '2px solid rgba(0, 212, 255, 0.3)', 
-          borderRadius: '15px', 
-          overflow: 'hidden', 
-          width: '100%', 
-          aspectRatio: '4/3', 
-          backgroundColor: '#000',
-          boxShadow: 'inset 0 0 50px rgba(0, 212, 255, 0.1)'
+          position: 'relative', border: '2px solid rgba(0, 212, 255, 0.3)', 
+          borderRadius: '15px', overflow: 'hidden', width: '100%', 
+          aspectRatio: '4/3', backgroundColor: '#000', boxShadow: 'inset 0 0 50px rgba(0, 212, 255, 0.1)'
         }}>
           {previewImage ? (
             <img src={previewImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <>
               <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              {/* Scan Overlay Effect */}
               <div style={{
-                position: 'absolute',
-                top: 0, left: 0, width: '100%', height: '2px',
-                background: '#00d4ff',
-                boxShadow: '0 0 15px #00d4ff',
-                animation: 'scan 3s linear infinite'
+                position: 'absolute', top: 0, left: 0, width: '100%', height: '2px',
+                background: '#00d4ff', boxShadow: '0 0 15px #00d4ff', animation: 'scan 3s linear infinite'
               }}></div>
             </>
           )}
@@ -166,12 +147,12 @@ export default function Register() {
             </button>
           ) : (
             <>
-              <button onClick={() => setPreviewImage(null)} style={{ padding: '15px 30px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+              <button onClick={() => setPreviewImage(null)} disabled={loading} style={{ padding: '15px 30px', backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
                 RETAKE
               </button>
               <button onClick={captureAndRegister} disabled={loading} style={{ 
-                padding: '15px 30px', background: 'linear-gradient(45deg, #007bff, #00d4ff)', color: 'white', 
-                border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' 
+                padding: '15px 30px', background: loading ? '#555' : 'linear-gradient(45deg, #007bff, #00d4ff)', color: 'white', 
+                border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold' 
               }}>
                 {loading ? "SYNCING..." : "CONFIRM REGISTRY"}
               </button>
@@ -192,7 +173,6 @@ export default function Register() {
         </div>
       )}
 
-      {/* Adding keyframe animation for the scanner line */}
       <style>{`
         @keyframes scan {
           0% { top: 0%; }

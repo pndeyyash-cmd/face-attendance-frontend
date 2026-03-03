@@ -48,12 +48,12 @@ export default function Scanner() {
 
       if (response.status === 200 || response.status === 201) {
         setStatus(`✅ Access Granted: ${response.data.message}`);
-        // SUCCESS TERMINATION: Shutdown webcam and loop
-        setIsScanning(false);
+        // HARD TERMINATE: Stop loop immediately on success
+        setIsScanning(false); 
         setBlinkDetected(false);
       }
     } catch (error) {
-      // ERROR TERMINATION: Shutdown webcam and loop to prevent spam
+      // HARD TERMINATE: Stop loop immediately on failure to prevent spam
       setIsScanning(false);
       setBlinkDetected(false);
       if (error.response?.status === 404) {
@@ -68,11 +68,15 @@ export default function Scanner() {
     if (!isScanning || !webcamRef.current || blinkDetected) return;
 
     const video = webcamRef.current.video;
-    if (video.readyState !== 4) return;
+    // Ensure video is fully ready before processing
+    if (!video || video.readyState !== 4) {
+      setTimeout(detectLiveness, 150);
+      return;
+    }
 
-    // PERFORMANCE: inputSize 128 is the fastest possible speed
+    // SPEED OPTIMIZATION: inputSize 128 is the absolute fastest config
     const detections = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.5 }))
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.6 }))
       .withFaceLandmarks();
 
     if (detections) {
@@ -83,17 +87,17 @@ export default function Scanner() {
         setBlinkDetected(true);
         setStatus("LIVENESS CONFIRMED. AUTHENTICATING...");
         processIdentity(webcamRef.current.getScreenshot());
-        return; // Break the detection loop
+        return; // Break out of the loop
       } else {
         setStatus("AWAITING LIVENESS PROOF: PLEASE BLINK");
       }
     }
 
-    // THROTTLE: 100ms prevents CPU 100% usage and lag
+    // THROTTLE: 150ms prevents browser freezing
     if (isScanning && !blinkDetected) {
       setTimeout(() => {
         detectLiveness();
-      }, 100);
+      }, 150);
     }
   }, [isScanning, blinkDetected]);
 
@@ -178,8 +182,8 @@ export default function Scanner() {
       <div style={{ 
         marginTop: '30px', padding: '15px 40px', borderRadius: '10px',
         background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)',
-        border: `1px solid ${status.includes("✅") ? '#2ecc71' : status.includes("BLINK") ? '#00d4ff' : 'rgba(255,255,255,0.1)'}`,
-        color: status.includes("✅") ? '#2ecc71' : status.includes("BLINK") ? '#00d4ff' : '#fff',
+        border: `1px solid ${status.includes("✅") ? '#2ecc71' : status.includes("❌") ? '#ff7675' : '#00d4ff'}`,
+        color: status.includes("✅") ? '#2ecc71' : status.includes("❌") ? '#ff7675' : '#fff',
         fontWeight: '700', letterSpacing: '1px'
       }}>
         {status.toUpperCase()}
