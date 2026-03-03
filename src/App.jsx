@@ -33,7 +33,7 @@ export default function App() {
             <>
               <Link to="/register" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', fontWeight: 'bold' }}>Register</Link>
               <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', fontWeight: 'bold' }}>Logs</Link>
-              <Link to="/manage-students" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', fontWeight: 'bold' }}>Students</Link>
+              <Link to="/manage-students" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', fontWeight: 'bold' }}>Management</Link>
               <button onClick={handleLogout} style={{ backgroundColor: '#ff4c4c', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>Logout</button>
             </>
           ) : (
