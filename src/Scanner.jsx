@@ -48,11 +48,13 @@ export default function Scanner() {
 
       if (response.status === 200 || response.status === 201) {
         setStatus(`✅ Access Granted: ${response.data.message}`);
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        setBlinkDetected(false); 
-        setStatus("Biometric System Standby. Awaiting Authorization.");
+        // SUCCESS TERMINATION: Shutdown webcam and loop
+        setIsScanning(false);
+        setBlinkDetected(false);
       }
     } catch (error) {
+      // ERROR TERMINATION: Shutdown webcam and loop to prevent spam
+      setIsScanning(false);
       setBlinkDetected(false);
       if (error.response?.status === 404) {
         setStatus("❌ Access Restricted: Identity Not Found.");
@@ -68,9 +70,9 @@ export default function Scanner() {
     const video = webcamRef.current.video;
     if (video.readyState !== 4) return;
 
-    // PERFORMANCE FIX: inputSize set to 160 dramatically reduces lag
+    // PERFORMANCE: inputSize 128 is the fastest possible speed
     const detections = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.5 }))
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.5 }))
       .withFaceLandmarks();
 
     if (detections) {
@@ -81,13 +83,13 @@ export default function Scanner() {
         setBlinkDetected(true);
         setStatus("LIVENESS CONFIRMED. AUTHENTICATING...");
         processIdentity(webcamRef.current.getScreenshot());
+        return; // Break the detection loop
       } else {
         setStatus("AWAITING LIVENESS PROOF: PLEASE BLINK");
       }
     }
 
-    // PERFORMANCE FIX: Use setTimeout (100ms) instead of requestAnimationFrame 
-    // to prevent the CPU from hitting 100% usage.
+    // THROTTLE: 100ms prevents CPU 100% usage and lag
     if (isScanning && !blinkDetected) {
       setTimeout(() => {
         detectLiveness();
@@ -131,7 +133,6 @@ export default function Scanner() {
 
         {isScanning && (
           <>
-            {/* Visual Instruction Overlay */}
             <div style={{
               position: 'absolute', top: '20px', left: '20px', padding: '10px 20px',
               background: 'rgba(0,0,0,0.7)', borderRadius: '8px', border: '1px solid #00d4ff',
