@@ -1,0 +1,35 @@
+/* Global Reset: Forces the app to fill the entire screen without gaps */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0f0c29; /* Matches your App.jsx theme */
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar to match the Cyan Cyber Theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0c29;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #00dbde, #fc00ff);
+  border-radius: 10px;
+}
+
+/* Selection Highlight */
+::selection {
+  background: #fc00ff;
+  color: white;
+}
