@@ -12,13 +12,18 @@ export default function Scanner() {
 
   // --- DYNAMIC GEOFENCING STATE ---
   const [currentLocation, setCurrentLocation] = useState(null);
-  const [secureZone, setSecureZone] = useState(null);
   const [isWithinZone, setIsWithinZone] = useState(false);
-  const ALLOWED_RADIUS_METERS = 100;
+  
+  // 1. Initialize secureZone from sessionStorage to survive tab switching
+  const [secureZone, setSecureZone] = useState(() => {
+    const savedZone = sessionStorage.getItem('attendanceSecureZone');
+    return savedZone ? JSON.parse(savedZone) : null;
+  });
 
+  const ALLOWED_RADIUS_METERS = 100;
   const BLINK_THRESHOLD = 0.26;
 
-  // 1. Haversine Math
+  // 2. Haversine Math
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371e3; 
     const toRad = (value) => (value * Math.PI) / 180;
@@ -28,7 +33,7 @@ export default function Scanner() {
     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))); 
   };
 
-  // 2. Track Real-time Location
+  // 3. Track Real-time Location
   useEffect(() => {
     if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition(
@@ -59,14 +64,24 @@ export default function Scanner() {
     }
   }, [secureZone, modelsLoaded]);
 
-  // 3. Admin Function to Lock the Zone
+  // 4. Admin Function to Lock the Zone (Persists to Session Storage)
   const lockCurrentLocation = () => {
     if (currentLocation) {
       setSecureZone(currentLocation);
+      sessionStorage.setItem('attendanceSecureZone', JSON.stringify(currentLocation));
       setIsWithinZone(true);
       setStatus("✅ SECURE ZONE LOCKED. Loading Biometrics...");
       loadModels();
     }
+  };
+
+  // 5. Admin Function to Release the Zone
+  const releaseCurrentLocation = () => {
+    setSecureZone(null);
+    sessionStorage.removeItem('attendanceSecureZone');
+    setIsWithinZone(false);
+    setIsScanning(false);
+    setStatus("⚠️ SYSTEM UNLOCKED: Please set a Secure Zone to begin.");
   };
 
   const loadModels = async () => {
@@ -95,8 +110,16 @@ export default function Scanner() {
     try {
       setStatus("ANALYZING BIOMETRIC DATA...");
       const response = await axios.post('https://face-attendance-backend-3o2a.onrender.com/recognize', { image: imageSrc });
+      
       if (response.status === 200 || response.status === 201) {
-        setStatus(`✅ Access Granted: ${response.data.message}`);
+        
+        // 6. FIX: Check for the 'duplicate' status sent from the backend
+        if (response.data.status === "duplicate") {
+             setStatus(`⚠️ NOTICE: ${response.data.message}`);
+        } else {
+             setStatus(`✅ ATTENDANCE MARKED: ${response.data.message}`);
+        }
+        
         setIsScanning(false); 
         setBlinkDetected(false);
       }
@@ -149,7 +172,7 @@ export default function Scanner() {
           {secureZone ? "📍 SECURE ZONE ACTIVE" : "🔒 SET CURRENT LOCATION AS SECURE ZONE"}
         </button>
         {secureZone && (
-          <button onClick={() => { setSecureZone(null); setIsWithinZone(false); setIsScanning(false); }} style={{ padding: '10px 20px', background: 'transparent', color: '#ff7675', border: '1px solid #ff7675', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+          <button onClick={releaseCurrentLocation} style={{ padding: '10px 20px', background: 'transparent', color: '#ff7675', border: '1px solid #ff7675', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
             RELEASE ZONE
           </button>
         )}
@@ -184,7 +207,7 @@ export default function Scanner() {
         {isScanning ? "TERMINATE SCAN" : "INITIALIZE SCANNER"}
       </button>
 
-      <div style={{ marginTop: '30px', padding: '15px 40px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)', border: `1px solid ${status.includes("✅") ? '#2ecc71' : status.includes("❌") ? '#ff7675' : '#00d4ff'}`, color: status.includes("✅") ? '#2ecc71' : status.includes("❌") ? '#ff7675' : '#fff', fontWeight: '700', letterSpacing: '1px' }}>
+      <div style={{ marginTop: '30px', padding: '15px 40px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.05)', backdropFilter: 'blur(10px)', border: `1px solid ${status.includes("✅") ? '#2ecc71' : status.includes("❌") ? '#ff7675' : status.includes("⚠️") ? '#ff9f43' : '#00d4ff'}`, color: status.includes("✅") ? '#2ecc71' : status.includes("❌") ? '#ff7675' : status.includes("⚠️") ? '#ff9f43' : '#fff', fontWeight: '700', letterSpacing: '1px' }}>
         {status.toUpperCase()}
       </div>
 
