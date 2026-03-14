@@ -125,7 +125,14 @@ export default function Register() {
             <img src={previewImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <>
-              <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {/* ENFORCED VIDEO CONSTRAINTS TO FIX UPLOAD LATENCY */}
+              <Webcam 
+                audio={false} 
+                ref={webcamRef} 
+                screenshotFormat="image/jpeg" 
+                videoConstraints={{ width: 640, height: 480, facingMode: "user" }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
               <div style={{
                 position: 'absolute', top: 0, left: 0, width: '100%', height: '2px',
                 background: '#00d4ff', boxShadow: '0 0 15px #00d4ff', animation: 'scan 3s linear infinite'
