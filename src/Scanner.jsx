@@ -16,7 +16,7 @@ export default function Scanner() {
   const [isWithinZone, setIsWithinZone] = useState(false);
   const ALLOWED_RADIUS_METERS = 100;
 
-  const BLINK_THRESHOLD = 0.22;
+  const BLINK_THRESHOLD = 0.26;
 
   // 1. Haversine Math
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -116,7 +116,7 @@ export default function Scanner() {
       return;
     }
 
-    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.6 })).withFaceLandmarks();
+    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.4 })).withFaceLandmarks();
 
     if (detections) {
       const avgEAR = (calculateEAR(detections.landmarks.getLeftEye()) + calculateEAR(detections.landmarks.getRightEye())) / 2;
